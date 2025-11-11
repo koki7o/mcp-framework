@@ -142,7 +142,7 @@ async fn main() -> Result<()> {
 
     let client = McpClient::new("http://localhost:3000");
     let llm = AnthropicAdapter::from_env("claude-sonnet-4-5-20250929".to_string())?;
-    let agent = Agent::new(client, Arc::new(llm), AgentConfig::default());
+    let mut agent = Agent::new(client, Arc::new(llm), AgentConfig::default());
 
     let response = agent.run("What is 15 + 27?").await?;
     println!("{}", response);
@@ -304,8 +304,8 @@ let config = ServerConfig {
     version: "1.0.0".to_string(),
     capabilities: ServerCapabilities {
         tools: Some(ToolsCapability { list_changed: Some(false) }),
-        resources: None,
-        prompts: None,
+        resources: None,  // Not implemented yet
+        prompts: None,    // Not implemented yet
     },
 };
 
@@ -316,12 +316,18 @@ let server = McpServer::new(config, handler);
 ### Register a Tool
 
 ```rust
+use std::collections::HashMap;
+use serde_json::json;
+
+let mut properties = HashMap::new();
+properties.insert("param".to_string(), json!({"type": "string"}));
+
 server.register_tool(Tool {
     name: "my_tool".to_string(),
     description: Some("Does something useful".to_string()),
     input_schema: Some(ToolInputSchema {
         schema_type: "object".to_string(),
-        properties: { /* JSON schema properties */ },
+        properties,
         required: Some(vec!["param".to_string()]),
     }),
 });
@@ -365,7 +371,7 @@ async fn main() -> Result<()> {
     let client = McpClient::new("http://localhost:3000");
     let llm = AnthropicAdapter::from_env("claude-sonnet-4-5-20250929".to_string())?;
 
-    let agent = Agent::new(client, Arc::new(llm), AgentConfig {
+    let mut agent = Agent::new(client, Arc::new(llm), AgentConfig {
         max_iterations: 10,
         max_tokens: Some(2048),
     });
