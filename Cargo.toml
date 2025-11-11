@@ -1,0 +1,36 @@
+[package]
+name = "mcp_framework"
+version = "0.1.0"
+edition = "2024"
+description = "A production-ready Rust implementation of the Model Context Protocol (MCP) with AI agent support, tool servers, and web-based debugging."
+authors = ["MCP Framework Contributors"]
+license = "MIT"
+repository = "https://github.com/anthropics/mcp-framework"
+homepage = "https://modelcontextprotocol.io"
+documentation = "https://docs.rs/mcp_framework"
+keywords = ["mcp", "ai", "agents", "llm", "tools"]
+categories = ["api-bindings", "development-tools"]
+
+[dependencies]
+tokio = { version = "1.40", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+async-trait = "0.1"
+thiserror = "1.0"
+uuid = { version = "1.0", features = ["v4", "serde"] }
+bytes = "1.0"
+tracing = "0.1"
+tracing-subscriber = "0.3"
+anyhow = "1.0"
+axum = "0.7"
+tower = "0.4"
+tower-http = { version = "0.5", features = ["trace", "cors"] }
+reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }
+futures = "0.3"
+dashmap = "5.5"
+parking_lot = "0.12"
+chrono = { version = "0.4", features = ["serde"] }
+log = "0.4"
+env_logger = "0.11"
+urlencoding = "2.1"
+dotenv = "0.15.0"
