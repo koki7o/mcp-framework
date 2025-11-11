@@ -283,7 +283,7 @@ mcp-framework/
 │   ├── openai_agent_demo_with_tools.rs    ← OpenAI agent example
 │   └── client_usage.rs                    ← Client usage example
 ├── assets/
-│   └── banner.png            ← Your project banner (add this)
+│   └── banner.png           
 ├── Cargo.toml
 ├── Cargo.lock
 ├── LICENSE                   ← MIT License
