@@ -70,7 +70,7 @@ impl McpServer {
 
     /// Register a tool
     pub fn register_tool(&self, tool: Tool) {
-        self.tools.insert(tool.name.clone(), tool);
+        self.tools.insert(tool.name.to_string(), tool);
     }
 
     /// Register a resource
@@ -80,7 +80,7 @@ impl McpServer {
 
     /// Register a prompt
     pub fn register_prompt(&self, prompt: Prompt) {
-        self.prompts.insert(prompt.name.clone(), prompt);
+        self.prompts.insert(prompt.name.to_string(), prompt);
     }
 
     /// Set resource handler
@@ -129,7 +129,7 @@ impl McpServer {
         let content = self.tool_handler.execute(name, arguments).await?;
 
         Ok(ToolResult {
-            id: uuid::Uuid::new_v4().to_string(),
+            id: Some(uuid::Uuid::new_v4().to_string()),
             content,
             is_error: None,
         })
@@ -152,9 +152,9 @@ impl McpServer {
     pub async fn handle_resource_read(&self, uri: &str) -> Result<String> {
         if let Some(handler) = &self.resource_handler {
             let resource = handler.get(uri).await?;
-            Ok(resource.uri)
+            Ok(resource.uri.to_string())
         } else if let Some(resource) = self.resources.get(uri) {
-            Ok(resource.uri.clone())
+            Ok(resource.uri.to_string())
         } else {
             Err(Error::ResourceNotFound(uri.to_string()))
         }
@@ -339,7 +339,11 @@ mod tests {
         let tool = Tool {
             name: "test_tool".to_string(),
             description: Some("A test tool".to_string()),
-            input_schema: None,
+            input_schema: Some(ToolInputSchema {
+                schema_type: "object".to_string(),
+                properties: Default::default(),
+                required: None,
+            }),
         };
 
         server.register_tool(tool);

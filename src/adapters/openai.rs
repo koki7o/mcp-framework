@@ -231,19 +231,71 @@ impl LLMProvider for OpenAIAdapter {
                 tools
                     .iter()
                     .map(|tool| {
-                        let parameters = tool.input_schema.as_ref().map(|schema| {
-                            OpenAIToolParameters {
-                                type_field: schema.schema_type.clone(),
-                                properties: schema.properties.clone(),
-                                required: schema.required.clone(),
+                        let parameters = tool.input_schema.as_ref().map_or_else(
+                            || {
+                                // Tool doesn't have input schema - create a default one
+                                // Try to infer parameters from tool name and description
+                                let desc = tool.description.as_deref().unwrap_or("").to_lowercase();
+                                let mut properties = std::collections::HashMap::new();
+                                let mut required = Vec::new();
+
+                                // Common parameters based on tool name and description
+                                if tool.name.contains("navigate") || desc.contains("url") {
+                                    properties.insert("url".to_string(), serde_json::json!({
+                                        "type": "string",
+                                        "description": "The URL to navigate to"
+                                    }));
+                                    required.push("url".to_string());
+                                }
+                                if desc.contains("text") || desc.contains("click") {
+                                    properties.insert("text".to_string(), serde_json::json!({
+                                        "type": "string",
+                                        "description": "The text to search for or interact with"
+                                    }));
+                                    required.push("text".to_string());
+                                }
+                                if desc.contains("key") || desc.contains("press") {
+                                    properties.insert("key".to_string(), serde_json::json!({
+                                        "type": "string",
+                                        "description": "The key to press"
+                                    }));
+                                    required.push("key".to_string());
+                                }
+                                if desc.contains("selector") || desc.contains("element") {
+                                    properties.insert("selector".to_string(), serde_json::json!({
+                                        "type": "string",
+                                        "description": "CSS selector for the element"
+                                    }));
+                                    required.push("selector".to_string());
+                                }
+                                if properties.is_empty() {
+                                    // Fallback: create a generic 'params' parameter
+                                    properties.insert("params".to_string(), serde_json::json!({
+                                        "type": "object",
+                                        "description": "Parameters for this tool"
+                                    }));
+                                }
+
+                                OpenAIToolParameters {
+                                    type_field: "object".to_string(),
+                                    properties,
+                                    required: if required.is_empty() { None } else { Some(required) },
+                                }
+                            },
+                            |schema| {
+                                OpenAIToolParameters {
+                                    type_field: schema.schema_type.clone(),
+                                    properties: schema.properties.clone(),
+                                    required: schema.required.clone(),
+                                }
                             }
-                        });
+                        );
 
                         OpenAITool {
                             type_field: "function".to_string(),
                             name: tool.name.clone(),
                             description: tool.description.clone(),
-                            parameters,
+                            parameters: Some(parameters),
                         }
                     })
                     .collect::<Vec<_>>()
@@ -252,17 +304,16 @@ impl LLMProvider for OpenAIAdapter {
             None
         };
 
-        // Tool execution loop - max 10 iterations to prevent infinite loops
-        let max_iterations = 10;
-        for _ in 0..max_iterations {
+        // Tool execution loop
+        let max_iterations = 20;
 
+        for _iteration in 0..max_iterations {
             // Create request for Responses API
             let request = OpenAIResponsesRequest {
                 model: self.model.clone(),
                 input: input.clone(),
                 tools: openai_tools.clone(),
             };
-
             // Make API call to Responses API endpoint
             let response = self
                 .client
@@ -296,6 +347,7 @@ impl LLMProvider for OpenAIAdapter {
                 let mut tool_results = Vec::new();
 
                 for call in function_calls {
+
                     // Parse arguments from JSON string
                     let arguments: Value = match serde_json::from_str(&call.arguments_str) {
                         Ok(args) => args,
@@ -310,7 +362,7 @@ impl LLMProvider for OpenAIAdapter {
                         match mcp_client.call_tool(&call.name, arguments).await {
                             Ok(tool_result) => {
                                 // Format the tool result
-                                tool_result
+                                let formatted_result = tool_result
                                     .content
                                     .iter()
                                     .filter_map(|c| match c {
@@ -318,10 +370,21 @@ impl LLMProvider for OpenAIAdapter {
                                         _ => None,
                                     })
                                     .collect::<Vec<_>>()
-                                    .join("\n")
+                                    .join("\n");
+
+                                // Check if the tool returned an error
+                                if tool_result.is_error == Some(true) {
+                                    // Return error to LLM so it knows the tool call FAILED
+                                    return Err(Error::InternalError(
+                                        format!("Tool '{}' failed with error: {}", call.name, formatted_result)
+                                    ));
+                                }
+
+                                formatted_result
                             }
                             Err(e) => {
-                                format!("Error executing tool '{}': {}", call.name, e)
+                                let error_msg = format!("Error executing tool '{}': {}", call.name, e);
+                                return Err(Error::InternalError(error_msg));
                             }
                         }
                     } else {

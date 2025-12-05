@@ -12,25 +12,61 @@ keywords = ["mcp", "ai", "agents", "llm", "tools"]
 categories = ["api-bindings", "development-tools"]
 
 [dependencies]
+# Official Rust SDK for Model Context Protocol
+rmcp = { version = "0.9", features = [
+    "client",
+    "server",
+    "transport-io",
+    "transport-child-process",
+    "transport-sse-client",
+    "transport-sse-server",
+    "transport-streamable-http-client",
+    "transport-streamable-http-server",
+    "transport-async-rw",
+    "auth",
+] }
+
+# Async runtime and utilities
 tokio = { version = "1.40", features = ["full"] }
+futures = "0.3"
+async-trait = "0.1"
+
+# Serialization
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-async-trait = "0.1"
+
+# Error handling
 thiserror = "1.0"
+anyhow = "1.0"
+
+# Utilities
 uuid = { version = "1.0", features = ["v4", "serde"] }
 bytes = "1.0"
+
+# Logging and tracing
 tracing = "0.1"
 tracing-subscriber = "0.3"
-anyhow = "1.0"
+log = "0.4"
+env_logger = "0.11"
+
+# Web framework (for Inspector)
 axum = "0.7"
 tower = "0.4"
 tower-http = { version = "0.5", features = ["trace", "cors"] }
+
+# HTTP client
 reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }
-futures = "0.3"
+
+# Concurrent data structures
 dashmap = "5.5"
 parking_lot = "0.12"
+
+# Date/time
 chrono = { version = "0.4", features = ["serde"] }
-log = "0.4"
-env_logger = "0.11"
+
+# Utilities
 urlencoding = "2.1"
 dotenv = "0.15.0"
+
+# WebSocket support
+tokio-tungstenite = "0.23"

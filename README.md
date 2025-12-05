@@ -50,17 +50,17 @@
 | Feature | Status | Details |
 |---------|--------|---------|
 | **MCP Server** | ✅ Complete | Register tools, handle execution, JSON-RPC protocol |
-| **MCP Client** | ✅ Complete | HTTP-based client for calling remote tools |
+| **MCP Client** | ✅ Complete | Multi-transport client (HTTP, HTTPS, stdio) with session management |
 | **AI Agent** | ✅ Complete | Agentic loop with pluggable LLM providers |
 | **Web Inspector** | ✅ Complete | Interactive UI at `http://localhost:8123` |
-| **Claude Integration** | ✅ Complete | AnthropicAdapter for Claude models |
-| **OpenAI Integration** | ✅ Complete | OpenAIAdapter for GPT models |
+| **Claude Integration** | ✅ Complete | AnthropicAdapter for Claude models with tool use |
+| **OpenAI Integration** | ✅ Complete | OpenAIAdapter with Responses API and internal tool loop |
+| **Browser Automation** | ✅ Complete | Playwright MCP integration for web automation |
 | **Protocol Types** | ✅ Complete | Tools and Messages (Core MCP protocol) |
-| **Session Management** | ✅ Complete | Conversation history in Agent |
+| **Session Management** | ✅ Complete | Multi-server sessions with connectors |
 | **Resources** | ⏳ Planned | For serving files and data to clients |
 | **Prompts** | ⏳ Planned | Callable prompt templates with dynamic generation |
 | **Authentication** | ⏳ Planned | Bearer tokens, OAuth 2.0 support |
-| **Configuration** | ⏳ Planned | File-based config loading |
 | **.env Support** | ✅ Complete | Load API keys from environment files |
 
 ### 🛠️ 8 Built-in Example Tools
@@ -121,6 +121,20 @@ cargo run --example anthropic_agent_demo_with_tools --release
 ```bash
 # Requires OPENAI_API_KEY in .env
 cargo run --example openai_agent_demo_with_tools --release
+```
+
+**Browser Automation (OpenAI):**
+```bash
+# Requires OPENAI_API_KEY in .env
+# Install: npm install -g @playwright/mcp@latest && npx playwright install firefox
+cargo run --example browser_agent_openai
+```
+
+**Browser Automation (Claude):**
+```bash
+# Requires ANTHROPIC_API_KEY in .env
+# Install: npm install -g @playwright/mcp@latest && npx playwright install firefox
+cargo run --example browser_agent_anthropic
 ```
 
 ---
@@ -278,10 +292,13 @@ mcp-framework/
 │       ├── anthropic.rs      ← Claude (Anthropic) LLM adapter
 │       └── openai.rs         ← OpenAI GPT LLM adapter
 ├── examples/
-│   ├── server_with_tools.rs              ← 8-tool server with Inspector
+│   ├── server_with_tools.rs               ← 8-tool server with Inspector
 │   ├── anthropic_agent_demo_with_tools.rs ← Claude agent example
 │   ├── openai_agent_demo_with_tools.rs    ← OpenAI agent example
-│   └── client_usage.rs                    ← Client usage example
+│   ├── browser_agent_openai.rs            ← Browser automation with OpenAI
+│   ├── browser_agent_anthropic.rs         ← Browser automation with Claude
+│   ├── client_usage.rs                    ← Client usage example
+│   └── simple_server.rs                   ← Minimal server example
 ├── assets/
 │   └── banner.png           
 ├── Cargo.toml

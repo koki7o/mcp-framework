@@ -1,7 +1,33 @@
-use serde::{Deserialize, Serialize};
+/// Protocol types and compatibility layer
+///
+/// This module provides a compatibility layer over the official Rust SDK (rmcp).
+/// It re-exports official types and provides convenience wrappers where needed.
+
+use serde::{Deserialize, Serialize, Serializer};
 use serde_json::Value;
 use std::collections::HashMap;
 use uuid::Uuid;
+
+/// Custom serializer for params that outputs empty object instead of null
+fn serialize_params<S>(params: &Option<Value>, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    match params {
+        Some(value) => value.serialize(serializer),
+        None => serde_json::json!({}).serialize(serializer),
+    }
+}
+
+// Re-export types from official SDK
+pub use rmcp::model::{
+    Tool as RmcpTool,
+    Prompt as RmcpPrompt,
+    Resource as RmcpResource,
+    TextContent,
+    ImageContent,
+    EmbeddedResource,
+};
 
 /// MCP Protocol version
 pub const MCP_VERSION: &str = "2025-11-05";
@@ -9,13 +35,13 @@ pub const MCP_VERSION: &str = "2025-11-05";
 /// Unique identifier for requests
 pub type RequestId = String;
 
-/// JSON-RPC Request
+/// JSON-RPC Request - compatibility type
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct JsonRpcRequest {
     pub jsonrpc: String,
     pub id: RequestId,
     pub method: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(serialize_with = "serialize_params")]
     pub params: Option<Value>,
 }
 
@@ -30,7 +56,7 @@ impl JsonRpcRequest {
     }
 }
 
-/// JSON-RPC Response
+/// JSON-RPC Response - compatibility type
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct JsonRpcResponse {
     pub jsonrpc: String,
@@ -50,12 +76,15 @@ pub struct JsonRpcError {
     pub data: Option<Value>,
 }
 
-/// Tool definition
+/// Tool definition - we keep a custom version for backward compatibility
+/// but also provide RmcpTool via re-export for those using the official SDK
+pub use rmcp::model::Tool as RmcpToolType;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Tool {
     pub name: String,
     pub description: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none", rename = "inputSchema")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub input_schema: Option<ToolInputSchema>,
 }
 
@@ -69,26 +98,11 @@ pub struct ToolInputSchema {
     pub required: Option<Vec<String>>,
 }
 
-/// Resource definition
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Resource {
-    pub uri: String,
-    pub name: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub description: Option<String>,
-    #[serde(rename = "mimeType")]
-    pub mime_type: Option<String>,
-}
+/// Resource definition - compatibility wrapper
+pub type Resource = RmcpResource;
 
-/// Prompt definition
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Prompt {
-    pub name: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub description: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub arguments: Option<Vec<PromptArgument>>,
-}
+/// Prompt definition - compatibility wrapper
+pub type Prompt = RmcpPrompt;
 
 /// Prompt argument
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -110,7 +124,8 @@ pub struct ToolCall {
 /// Tool result
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ToolResult {
-    pub id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
     pub content: Vec<ResultContent>,
     #[serde(skip_serializing_if = "Option::is_none", rename = "isError")]
     pub is_error: Option<bool>,
@@ -244,8 +259,25 @@ mod tests {
     }
 
     #[test]
+    fn test_jsonrpc_request_serialization_with_params() {
+        // When params is provided, it should be serialized as-is
+        let req = JsonRpcRequest::new("tools/call", Some(serde_json::json!({"name": "test"})));
+        let json = serde_json::to_string(&req).unwrap();
+        assert!(json.contains("\"params\":{\"name\":\"test\"}"));
+    }
+
+    #[test]
+    fn test_jsonrpc_request_serialization_without_params() {
+        // When params is None, it should serialize as empty object {}
+        let req = JsonRpcRequest::new("tools/list", None);
+        let json = serde_json::to_string(&req).unwrap();
+        assert!(json.contains("\"params\":{}"), "Expected params: {{}}, got: {}", json);
+    }
+
+    #[test]
     fn test_message_creation() {
         let msg = Message::user("Hello");
         assert_eq!(msg.role, Role::User);
     }
 }
+

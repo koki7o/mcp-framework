@@ -27,6 +27,9 @@ pub mod agent;
 pub mod inspector;
 pub mod error;
 pub mod adapters;
+pub mod connectors;
+pub mod session;
+pub mod config;
 
 pub use error::{Error, Result};
 

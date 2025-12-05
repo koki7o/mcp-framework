@@ -39,6 +39,29 @@ pub enum AgentState {
     Error,
 }
 
+/// Event emitted during agent execution (for streaming/callbacks)
+#[derive(Debug, Clone)]
+pub enum AgentEvent {
+    /// Agent started processing
+    Started,
+    /// Thinking/calling LLM
+    LlmCall { iteration: usize },
+    /// LLM returned text response
+    TextChunk { text: String },
+    /// Tool is about to be called
+    ToolCallStarted { tool_name: String },
+    /// Tool execution completed
+    ToolCallCompleted { tool_name: String, result: String },
+    /// Tool execution failed
+    ToolCallFailed { tool_name: String, error: String },
+    /// Agent iteration completed
+    IterationComplete { iteration: usize },
+    /// Agent finished successfully
+    Finished { response: String },
+    /// Agent encountered an error
+    Failed { error: String },
+}
+
 /// Agentic loop configuration
 #[derive(Debug, Clone)]
 pub struct AgentConfig {
@@ -62,6 +85,10 @@ pub struct Agent {
     config: AgentConfig,
     state: AgentState,
     conversation: VecDeque<Message>,
+    /// System prompt for the agent (if None, LLM uses its default)
+    system_prompt: Option<String>,
+    /// Tools that are not allowed to be called
+    disallowed_tools: Vec<String>,
 }
 
 impl Agent {
@@ -77,13 +104,18 @@ impl Agent {
             config,
             state: AgentState::Ready,
             conversation: VecDeque::new(),
+            system_prompt: None,
+            disallowed_tools: Vec::new(),
         }
     }
 
     /// Run the agent with a user prompt
+    ///
+    /// Preserves conversation history across calls for multi-turn interactions.
+    /// To start fresh, call `clear_conversation()` before running.
     pub async fn run(&mut self, prompt: impl Into<String>) -> Result<String> {
         self.state = AgentState::Running;
-        self.conversation.clear();
+        // Add new user message to conversation (preserving history)
         self.conversation.push_back(Message::user(prompt));
 
         let mut iterations = 0;
@@ -92,8 +124,8 @@ impl Agent {
         while iterations < self.config.max_iterations && self.state == AgentState::Running {
             iterations += 1;
 
-            // Get available tools
-            let tools = self.client.list_tools().await?;
+            // Get available tools (filtered)
+            let tools = self.get_available_tools().await?;
 
             // Prepare messages for LLM
             let messages: Vec<Message> = self.conversation.iter().cloned().collect();
@@ -183,43 +215,243 @@ impl Agent {
     pub fn clear_conversation(&mut self) {
         self.conversation.clear();
     }
-}
 
-/// Example LLM provider (stub for demonstration)
-pub struct DummyLLMProvider;
+    /// Set the system prompt for the agent
+    pub fn set_system_prompt(&mut self, prompt: String) {
+        self.system_prompt = Some(prompt);
+    }
 
-#[async_trait::async_trait]
-impl LLMProvider for DummyLLMProvider {
-    async fn call(
-        &self,
-        messages: Vec<Message>,
-        _tools: Vec<Tool>,
-    ) -> Result<LLMResponse> {
-        // Simple echo back the last user message
-        let last_user_msg = messages
-            .iter()
-            .rev()
-            .find(|m| m.role == Role::User)
-            .and_then(|m| {
-                m.content.iter().find_map(|c| match c {
-                    ContentBlock::Text { text } => Some(text.clone()),
-                    _ => None,
-                })
-            })
-            .unwrap_or_default();
+    /// Get the current system prompt
+    pub fn get_system_prompt(&self) -> Option<&str> {
+        self.system_prompt.as_deref()
+    }
 
-        Ok(LLMResponse {
-            content: vec![ContentBlock::Text {
-                text: format!("I received: {}", last_user_msg),
-            }],
-            stop_reason: StopReason::EndTurn,
-        })
+    /// Clear the system prompt (use LLM's default)
+    pub fn clear_system_prompt(&mut self) {
+        self.system_prompt = None;
+    }
+
+    /// Set tools that are not allowed to be called
+    pub fn set_disallowed_tools(&mut self, tools: Vec<String>) {
+        self.disallowed_tools = tools;
+    }
+
+    /// Get the list of disallowed tools
+    pub fn get_disallowed_tools(&self) -> &[String] {
+        &self.disallowed_tools
+    }
+
+    /// Add a tool to the disallowed list
+    pub fn disallow_tool(&mut self, tool_name: String) {
+        if !self.disallowed_tools.contains(&tool_name) {
+            self.disallowed_tools.push(tool_name);
+        }
+    }
+
+    /// Get available tools, excluding disallowed ones
+    async fn get_available_tools(&self) -> Result<Vec<Tool>> {
+        let all_tools = self.client.list_tools().await?;
+        Ok(all_tools
+            .into_iter()
+            .filter(|t| !self.disallowed_tools.contains(&t.name))
+            .collect())
+    }
+
+    /// Run the agent with event callbacks for streaming responses
+    ///
+    /// This method emits events for each step of the agentic loop,
+    /// allowing real-time UI updates and streaming responses.
+    ///
+    /// # Example
+    /// ```ignore
+    /// let mut agent = Agent::new(client, llm, config);
+    /// agent.run_with_events("What is 2+2?", |event| {
+    ///     println!("Event: {:?}", event);
+    /// }).await?;
+    /// ```
+    pub async fn run_with_events<F>(&mut self, prompt: impl Into<String>, mut on_event: F) -> Result<String>
+    where
+        F: FnMut(AgentEvent) + Send,
+    {
+        self.state = AgentState::Running;
+        // Add new user message to conversation (preserving history)
+        self.conversation.push_back(Message::user(prompt));
+
+        on_event(AgentEvent::Started);
+
+        let mut iterations = 0;
+        let mut final_response = String::new();
+
+        while iterations < self.config.max_iterations && self.state == AgentState::Running {
+            iterations += 1;
+            on_event(AgentEvent::LlmCall {
+                iteration: iterations,
+            });
+
+            // Get available tools (filtered)
+            let tools = self.get_available_tools().await?;
+
+            // Prepare messages for LLM
+            let messages: Vec<Message> = self.conversation.iter().cloned().collect();
+
+            // Call LLM
+            let llm_response = self
+                .llm
+                .call(messages, tools)
+                .await
+                .map_err(|e| Error::LLMError(e.to_string()))?;
+
+            // Process response
+            let mut has_tool_use = false;
+            let mut assistant_message_added = false;
+
+            for content in &llm_response.content {
+                match content {
+                    ContentBlock::Text { text } => {
+                        final_response.push_str(text);
+                        on_event(AgentEvent::TextChunk {
+                            text: text.clone(),
+                        });
+                    }
+                    ContentBlock::ToolUse { id, name, input } => {
+                        has_tool_use = true;
+                        self.state = AgentState::WaitingForToolResult;
+
+                        on_event(AgentEvent::ToolCallStarted {
+                            tool_name: name.clone(),
+                        });
+
+                        // Add assistant message with tool use (only once)
+                        if !assistant_message_added {
+                            self.conversation.push_back(Message {
+                                role: Role::Assistant,
+                                content: llm_response.content.clone(),
+                            });
+                            assistant_message_added = true;
+                        }
+
+                        // Execute tool
+                        match self.client.call_tool(name, input.clone()).await {
+                            Ok(tool_result) => {
+                                let result_text = tool_result
+                                    .content
+                                    .iter()
+                                    .filter_map(|c| match c {
+                                        ResultContent::Text { text } => Some(text.clone()),
+                                        _ => None,
+                                    })
+                                    .collect::<Vec<_>>()
+                                    .join("\n");
+
+                                on_event(AgentEvent::ToolCallCompleted {
+                                    tool_name: name.clone(),
+                                    result: result_text,
+                                });
+
+                                // Add tool result
+                                self.conversation.push_back(Message {
+                                    role: Role::User,
+                                    content: vec![ContentBlock::ToolResult {
+                                        tool_use_id: id.clone(),
+                                        content: tool_result.content.clone(),
+                                        is_error: tool_result.is_error,
+                                    }],
+                                });
+                            }
+                            Err(e) => {
+                                on_event(AgentEvent::ToolCallFailed {
+                                    tool_name: name.clone(),
+                                    error: e.to_string(),
+                                });
+                                // Still add the error to conversation
+                                self.conversation.push_back(Message {
+                                    role: Role::User,
+                                    content: vec![ContentBlock::ToolResult {
+                                        tool_use_id: id.clone(),
+                                        content: vec![ResultContent::Text {
+                                            text: format!("Error: {}", e),
+                                        }],
+                                        is_error: Some(true),
+                                    }],
+                                });
+                            }
+                        }
+
+                        self.state = AgentState::Running;
+                    }
+                    _ => {}
+                }
+            }
+
+            on_event(AgentEvent::IterationComplete {
+                iteration: iterations,
+            });
+
+            // Check if we should stop
+            if !has_tool_use || llm_response.stop_reason == StopReason::EndTurn {
+                // Add final assistant message if not already added
+                if !assistant_message_added {
+                    self.conversation.push_back(Message {
+                        role: Role::Assistant,
+                        content: llm_response.content.clone(),
+                    });
+                }
+                self.state = AgentState::Done;
+            }
+        }
+
+        if iterations >= self.config.max_iterations {
+            self.state = AgentState::Error;
+            let err_msg = "Max iterations reached".to_string();
+            on_event(AgentEvent::Failed {
+                error: err_msg.clone(),
+            });
+            return Err(Error::InternalError(err_msg));
+        }
+
+        on_event(AgentEvent::Finished {
+            response: final_response.clone(),
+        });
+
+        Ok(final_response)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Test LLM provider for unit tests
+    struct DummyLLMProvider;
+
+    #[async_trait::async_trait]
+    impl LLMProvider for DummyLLMProvider {
+        async fn call(
+            &self,
+            messages: Vec<Message>,
+            _tools: Vec<Tool>,
+        ) -> Result<LLMResponse> {
+            // Simple echo back the last user message
+            let last_user_msg = messages
+                .iter()
+                .rev()
+                .find(|m| m.role == Role::User)
+                .and_then(|m| {
+                    m.content.iter().find_map(|c| match c {
+                        ContentBlock::Text { text } => Some(text.clone()),
+                        _ => None,
+                    })
+                })
+                .unwrap_or_default();
+
+            Ok(LLMResponse {
+                content: vec![ContentBlock::Text {
+                    text: format!("I received: {}", last_user_msg),
+                }],
+                stop_reason: StopReason::EndTurn,
+            })
+        }
+    }
 
     #[test]
     fn test_agent_creation() {
