@@ -4,13 +4,13 @@ use serde_json::json;
 /// Example of how to use the MCP Client to connect to a server
 #[tokio::main]
 async fn main() -> mcp_framework::Result<()> {
-    println!("📡 MCP Client Usage Example\n");
+    println!("MCP Client Usage Example\n");
 
     // Create a client that connects to an MCP server
     let client = McpClient::new("http://localhost:3000");
 
     // List available tools
-    println!("📋 Listing tools from server...\n");
+    println!("Listing tools from server...\n");
     match client.list_tools().await {
         Ok(tools) => {
             println!("Found {} tools:", tools.len());
@@ -23,7 +23,7 @@ async fn main() -> mcp_framework::Result<()> {
     }
 
     // Call a tool
-    println!("🔧 Calling the 'echo' tool...\n");
+    println!("Calling the 'echo' tool...\n");
     match client.call_tool("echo", json!({"message": "Hello from client!"})).await {
         Ok(result) => {
             println!("Tool result:");
@@ -37,8 +37,8 @@ async fn main() -> mcp_framework::Result<()> {
         Err(e) => println!("Error calling tool: {}", e),
     }
 
-    println!("\n✅ Client example complete");
-    println!("   ℹ️  To test this example, run a server first:");
+    println!("\nClient example complete");
+    println!("   To test this example, run a server first:");
     println!("      Terminal 1: cargo run --example simple_server --release");
     println!("      Terminal 2: cargo run --example client_usage --release\n");
 

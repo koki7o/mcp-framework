@@ -472,7 +472,7 @@ async fn handle_index() -> Html<&'static str> {
 </head>
 <body>
     <div class="header">
-        <h1>🔍 MCP Inspector</h1>
+        <h1>MCP Inspector</h1>
         <div class="status-badge connected">
             <span>Connected</span>
         </div>

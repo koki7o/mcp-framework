@@ -19,7 +19,7 @@ use mcp_framework::prelude::*;
 async fn main() -> Result<()> {
     mcp_framework::load_env();
 
-    println!("🤖 Browser Automation with Anthropic Claude\n");
+    println!("Browser Automation with Anthropic Claude\n");
 
     // Use Playwright-installed Firefox with isolated profile
     // Note: Chromium has compatibility issues with Playwright MCP

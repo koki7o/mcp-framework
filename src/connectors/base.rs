@@ -21,33 +21,14 @@ impl Default for ConnectorConfig {
     }
 }
 
-/// Trait for different connection transports
-///
-/// Connectors handle the low-level communication with MCP servers.
-/// Different transport mechanisms (HTTP, Stdio, SSE, WebSocket) all implement this trait.
-///
-/// The trait provides both low-level (send_request) and high-level methods (list_tools, call_tool).
-/// Default implementations of high-level methods use send_request, but can be overridden
-/// for transport-specific optimizations.
+/// Trait for different connection transports (HTTP, Stdio, SSE, WebSocket).
 #[async_trait::async_trait]
 pub trait Connector: Send + Sync {
-    /// Send a raw JSON-RPC request and receive a response
-    ///
-    /// This is the fundamental operation all connectors must implement.
     async fn send_request(&self, request: JsonRpcRequest) -> Result<JsonRpcResponse>;
 
-    /// Establish a connection to the MCP server
     async fn connect(&mut self) -> Result<()>;
-
-    /// Close the connection to the MCP server
     async fn disconnect(&mut self) -> Result<()>;
-
-    /// Check if connector is currently connected
     fn is_connected(&self) -> bool;
-
-    // =====================================================================
-    // High-level operations with default implementations
-    // =====================================================================
     // These can be overridden by specific transports for optimization
 
     /// Initialize the MCP connection

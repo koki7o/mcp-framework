@@ -257,18 +257,7 @@ impl Agent {
             .collect())
     }
 
-    /// Run the agent with event callbacks for streaming responses
-    ///
-    /// This method emits events for each step of the agentic loop,
-    /// allowing real-time UI updates and streaming responses.
-    ///
-    /// # Example
-    /// ```ignore
-    /// let mut agent = Agent::new(client, llm, config);
-    /// agent.run_with_events("What is 2+2?", |event| {
-    ///     println!("Event: {:?}", event);
-    /// }).await?;
-    /// ```
+    /// Run with event callbacks for streaming.
     pub async fn run_with_events<F>(&mut self, prompt: impl Into<String>, mut on_event: F) -> Result<String>
     where
         F: FnMut(AgentEvent) + Send,

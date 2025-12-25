@@ -1,21 +1,4 @@
-/// Anthropic Claude LLM Adapter (Claude 3.5 Sonnet, Claude 3 Opus, etc.)
-///
-/// This adapter integrates with Anthropic's API to provide LLM capabilities to the MCP Agent.
-///
-/// # Example
-///
-/// ```ignore
-/// use mcp_framework::adapters::AnthropicAdapter;
-/// use mcp_framework::agent::Agent;
-///
-/// let adapter = AnthropicAdapter::new(
-///     "sk-ant-...your-api-key...".to_string(),
-///     "claude-sonnet-4-5-20250929".to_string(),
-/// );
-///
-/// let agent = Agent::new(client, std::sync::Arc::new(adapter), config);
-/// let result = agent.run("Find me a restaurant").await?;
-/// ```
+/// Anthropic Claude adapter.
 
 use crate::agent::LLMProvider;
 use crate::protocol::{Message, Tool, ContentBlock, Role};

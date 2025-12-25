@@ -1,7 +1,4 @@
-/// Protocol types and compatibility layer
-///
-/// This module provides a compatibility layer over the official Rust SDK (rmcp).
-/// It re-exports official types and provides convenience wrappers where needed.
+/// Protocol types and compatibility layer over rmcp SDK.
 
 use serde::{Deserialize, Serialize, Serializer};
 use serde_json::Value;
@@ -76,8 +73,6 @@ pub struct JsonRpcError {
     pub data: Option<Value>,
 }
 
-/// Tool definition - we keep a custom version for backward compatibility
-/// but also provide RmcpTool via re-export for those using the official SDK
 pub use rmcp::model::Tool as RmcpToolType;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

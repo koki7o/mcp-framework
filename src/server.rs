@@ -5,27 +5,23 @@ use dashmap::DashMap;
 use serde_json::{json, Value};
 use std::sync::Arc;
 
-/// Handler for tool execution
 #[async_trait]
 pub trait ToolHandler: Send + Sync {
     async fn execute(&self, name: &str, arguments: Value) -> Result<Vec<ResultContent>>;
 }
 
-/// Handler for resource operations
 #[async_trait]
 pub trait ResourceHandler: Send + Sync {
     async fn get(&self, uri: &str) -> Result<Resource>;
     async fn list(&self) -> Result<Vec<Resource>>;
 }
 
-/// Handler for prompt operations
 #[async_trait]
 pub trait PromptHandler: Send + Sync {
     async fn get(&self, name: &str) -> Result<Prompt>;
     async fn list(&self) -> Result<Vec<Prompt>>;
 }
 
-/// MCP Server configuration
 #[derive(Debug, Clone)]
 pub struct ServerConfig {
     pub name: String,
@@ -43,7 +39,6 @@ impl Default for ServerConfig {
     }
 }
 
-/// MCP Server
 pub struct McpServer {
     config: ServerConfig,
     tools: Arc<DashMap<String, Tool>>,
@@ -55,7 +50,6 @@ pub struct McpServer {
 }
 
 impl McpServer {
-    /// Create a new MCP server
     pub fn new(config: ServerConfig, tool_handler: Arc<dyn ToolHandler>) -> Self {
         Self {
             config,
@@ -68,32 +62,26 @@ impl McpServer {
         }
     }
 
-    /// Register a tool
     pub fn register_tool(&self, tool: Tool) {
         self.tools.insert(tool.name.to_string(), tool);
     }
 
-    /// Register a resource
     pub fn register_resource(&self, resource: Resource) {
         self.resources.insert(resource.uri.clone(), resource);
     }
 
-    /// Register a prompt
     pub fn register_prompt(&self, prompt: Prompt) {
         self.prompts.insert(prompt.name.to_string(), prompt);
     }
 
-    /// Set resource handler
     pub fn set_resource_handler(&mut self, handler: Arc<dyn ResourceHandler>) {
         self.resource_handler = Some(handler);
     }
 
-    /// Set prompt handler
     pub fn set_prompt_handler(&mut self, handler: Arc<dyn PromptHandler>) {
         self.prompt_handler = Some(handler);
     }
 
-    /// Handle initialize request
     pub async fn handle_initialize(&self) -> JsonRpcResponse {
         JsonRpcResponse {
             jsonrpc: "2.0".to_string(),
@@ -110,7 +98,6 @@ impl McpServer {
         }
     }
 
-    /// Handle tools/list request
     pub async fn handle_tools_list(&self) -> Result<Vec<Tool>> {
         Ok(self
             .tools
@@ -119,9 +106,7 @@ impl McpServer {
             .collect())
     }
 
-    /// Handle tools/call request
     pub async fn handle_tool_call(&self, name: &str, arguments: Value) -> Result<ToolResult> {
-        // Verify tool exists
         if !self.tools.contains_key(name) {
             return Err(Error::ToolNotFound(name.to_string()));
         }
@@ -135,7 +120,6 @@ impl McpServer {
         })
     }
 
-    /// Handle resources/list request
     pub async fn handle_resources_list(&self) -> Result<Vec<Resource>> {
         if let Some(handler) = &self.resource_handler {
             handler.list().await
@@ -148,7 +132,6 @@ impl McpServer {
         }
     }
 
-    /// Handle resources/read request
     pub async fn handle_resource_read(&self, uri: &str) -> Result<String> {
         if let Some(handler) = &self.resource_handler {
             let resource = handler.get(uri).await?;
@@ -160,7 +143,6 @@ impl McpServer {
         }
     }
 
-    /// Handle prompts/list request
     pub async fn handle_prompts_list(&self) -> Result<Vec<Prompt>> {
         if let Some(handler) = &self.prompt_handler {
             handler.list().await
@@ -173,7 +155,6 @@ impl McpServer {
         }
     }
 
-    /// Handle prompts/get request
     pub async fn handle_prompt_get(&self, name: &str) -> Result<Prompt> {
         if let Some(handler) = &self.prompt_handler {
             handler.get(name).await
@@ -184,7 +165,6 @@ impl McpServer {
         }
     }
 
-    /// Handle a JSON-RPC request
     pub async fn handle_request(&self, request: JsonRpcRequest) -> JsonRpcResponse {
         let result = match request.method.as_str() {
             "initialize" => self.handle_initialize().await.result,

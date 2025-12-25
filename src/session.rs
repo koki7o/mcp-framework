@@ -1,9 +1,4 @@
-/// MCP Session - represents an active connection to an MCP server
-///
-/// A session wraps a connector and provides a high-level interface for
-/// interacting with an MCP server. It manages the connection lifecycle,
-/// caching of discovered resources, and provides convenient methods for
-/// querying and interacting with the server.
+/// Session to an MCP server. Wraps a connector and caches tools/resources/prompts.
 
 use crate::connectors::base::Connector;
 use crate::protocol::{Tool, Resource, Prompt, ToolResult};
@@ -11,12 +6,6 @@ use crate::error::Result;
 use serde_json::Value;
 use std::collections::HashMap;
 
-/// Represents an active session with an MCP server
-///
-/// Sessions manage:
-/// - Connection lifecycle (connect/disconnect)
-/// - Caching of tools, resources, and prompts
-/// - High-level operations (list, call, read)
 pub struct Session {
     /// Unique name for this session (usually the server name)
     pub name: String,

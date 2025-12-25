@@ -1,12 +1,8 @@
-/// MCP Client for communicating with MCP servers
+/// MCP Client for communicating with MCP servers.
 ///
-/// Intelligently handles multiple transport types based on URL scheme:
-/// - `http://host:port` → HTTP transport
-/// - `https://host:port` → HTTPS transport
-/// - `stdio://command args...` → Subprocess transport
-///
-/// The client automatically selects the appropriate connector based on configuration.
-/// No need to specify transport types - just provide URLs or configs and it works.
+/// Supports multiple transports:
+/// - `http://` or `https://` - HTTP transport
+/// - `stdio://command args` - Subprocess transport
 
 use crate::protocol::*;
 use crate::error::{Error, Result};
@@ -21,27 +17,7 @@ use dashmap::DashMap;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
-/// MCP Client - Main entry point for MCP communication
-///
-/// Supports both single-server and multi-server operation with auto-detected transports.
-///
-/// # Single-Server Mode
-/// ```ignore
-/// let client = McpClient::new("http://localhost:3000");
-/// let tools = client.list_tools().await?;
-/// let result = client.call_tool("tool_name", json!({})).await?;
-/// ```
-///
-/// # Multi-Server Mode
-/// ```ignore
-/// let mut client = McpClient::new_multi();
-/// client.add_server(MCPServerConfig::http("db", "http://localhost:3000"));
-/// client.add_server(MCPServerConfig::from_command("playwright", "npx @playwright/mcp"));
-/// client.create_all_sessions().await?;
-///
-/// let tools = client.list_all_tools().await?;
-/// let result = client.call_tool_on_server("server_name", "tool_name", json!({})).await?;
-/// ```
+/// MCP Client supporting single or multiple server connections.
 #[derive(Clone)]
 pub struct McpClient {
     // Single-server mode
@@ -57,19 +33,7 @@ pub struct McpClient {
 }
 
 impl McpClient {
-    /// Create a new MCP client for a single server
-    ///
-    /// Automatically detects the transport from the URL scheme.
-    /// Does not connect until you call `initialize()` or perform an operation.
-    ///
-    /// # Examples
-    /// ```ignore
-    /// // HTTP
-    /// let client = McpClient::new("http://localhost:3000");
-    ///
-    /// // Subprocess (Playwright)
-    /// let client = McpClient::new("stdio://npx @playwright/mcp");
-    /// ```
+    /// Create a new client for a single server.
     pub fn new(url: impl Into<String>) -> Self {
         Self {
             url: Some(url.into()),
@@ -80,9 +44,7 @@ impl McpClient {
         }
     }
 
-    /// Create a new empty client for multi-server mode
-    ///
-    /// Use `add_server()` to configure servers, then `create_all_sessions()` to connect.
+    /// Create a client for managing multiple servers.
     pub fn new_multi() -> Self {
         Self {
             url: None,
@@ -93,17 +55,15 @@ impl McpClient {
         }
     }
 
-    /// Add a server configuration (multi-server mode)
+    /// Add a server configuration.
     pub fn add_server(&mut self, config: MCPServerConfig) {
         self.servers_config.insert(config.name.clone(), config);
     }
 
-    /// Get list of configured server names
     pub fn server_names(&self) -> Vec<String> {
         self.servers_config.keys().cloned().collect()
     }
 
-    /// Create a connector from a URL by detecting the scheme
     fn create_connector_from_url(url: &str) -> Result<Box<dyn Connector>> {
         if url.starts_with("http://") || url.starts_with("https://") {
             // HTTP/HTTPS transport
@@ -134,7 +94,6 @@ impl McpClient {
         }
     }
 
-    /// Create a session from a config
     async fn create_session_from_config(&self, config: &MCPServerConfig) -> Result<Session> {
         let url = if let Some(url) = &config.url {
             url.clone()
@@ -155,11 +114,6 @@ impl McpClient {
         Ok(session)
     }
 
-    // =========================================================================
-    // Single-Server Mode Operations
-    // =========================================================================
-
-    /// Initialize the single-server connection
     pub async fn initialize(&mut self) -> Result<Value> {
         if let Some(url) = &self.url {
             let connector = Self::create_connector_from_url(url)?;
@@ -174,7 +128,6 @@ impl McpClient {
         }
     }
 
-    /// List tools from the server
     pub async fn list_tools(&self) -> Result<Vec<Tool>> {
         if let Some(session_arc) = &self.session {
             let mut session = session_arc.lock().await;
@@ -193,7 +146,6 @@ impl McpClient {
         }
     }
 
-    /// Call a tool on the server
     pub async fn call_tool(&self, tool_name: &str, arguments: Value) -> Result<ToolResult> {
         if let Some(session_arc) = &self.session {
             let session = session_arc.lock().await;
@@ -210,7 +162,6 @@ impl McpClient {
         }
     }
 
-    /// List resources from the server
     pub async fn list_resources(&self) -> Result<Vec<Resource>> {
         if let Some(session_arc) = &self.session {
             let mut session = session_arc.lock().await;
@@ -228,7 +179,6 @@ impl McpClient {
         }
     }
 
-    /// Read a resource from the server
     pub async fn read_resource(&self, uri: &str) -> Result<String> {
         if let Some(session_arc) = &self.session {
             let session = session_arc.lock().await;
@@ -244,7 +194,6 @@ impl McpClient {
         }
     }
 
-    /// List prompts from the server
     pub async fn list_prompts(&self) -> Result<Vec<Prompt>> {
         if let Some(session_arc) = &self.session {
             let mut session = session_arc.lock().await;
@@ -262,11 +211,6 @@ impl McpClient {
         }
     }
 
-    // =========================================================================
-    // Multi-Server Mode Operations
-    // =========================================================================
-
-    /// Create sessions for all configured servers
     pub async fn create_all_sessions(&self) -> Result<()> {
         let server_names = self.server_names();
         let mut errors = Vec::new();
@@ -297,7 +241,6 @@ impl McpClient {
         Ok(())
     }
 
-    /// List tools from a specific server (multi-server mode)
     pub async fn list_tools_for_server(&self, server_name: &str) -> Result<Vec<Tool>> {
         if let Some(mut session_ref) = self.sessions.get_mut(server_name) {
             session_ref.refresh_tools().await?;
@@ -307,7 +250,6 @@ impl McpClient {
         }
     }
 
-    /// Call a tool on a specific server (multi-server mode)
     pub async fn call_tool_on_server(
         &self,
         server_name: &str,
@@ -321,7 +263,6 @@ impl McpClient {
         }
     }
 
-    /// List all tools from all servers
     pub async fn list_all_tools(&self) -> Result<Vec<(String, Vec<Tool>)>> {
         let mut all_tools = Vec::new();
 
@@ -345,7 +286,6 @@ impl McpClient {
         Ok(all_tools)
     }
 
-    /// Close a session
     pub async fn close_session(&self, server_name: &str) -> Result<()> {
         if let Some((_, mut session)) = self.sessions.remove(server_name) {
             session.disconnect().await?;
@@ -354,7 +294,6 @@ impl McpClient {
         Ok(())
     }
 
-    /// Close all sessions
     pub async fn close_all_sessions(&self) -> Result<()> {
         let server_names: Vec<_> = self.sessions.iter().map(|r| r.key().clone()).collect();
         for name in server_names {
@@ -363,7 +302,6 @@ impl McpClient {
         Ok(())
     }
 
-    /// Check if client is connected
     pub fn is_connected(&self) -> bool {
         self.sessions.len() > 0 || self.session.is_some()
     }

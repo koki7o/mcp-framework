@@ -27,7 +27,7 @@ impl ToolHandler for CalculatorHandler {
 
 #[tokio::main]
 async fn main() -> mcp_framework::Result<()> {
-    println!("🚀 Simple MCP Server with Calculator\n");
+    println!("Simple MCP Server with Calculator\n");
 
     let config = ServerConfig {
         name: "Calculator Server".to_string(),

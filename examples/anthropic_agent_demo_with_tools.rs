@@ -37,7 +37,7 @@ async fn main() -> Result<()> {
     // Load environment variables from .env file
     mcp_framework::load_env();
 
-    println!("🤖 MCP Agent with Tools Demo\n");
+    println!("MCP Agent with Tools Demo\n");
     println!("This agent will use tools to answer your questions.\n");
 
     // Create a tool handler with the same 8 tools as with_tools.rs
@@ -306,7 +306,7 @@ async fn main() -> Result<()> {
             .await
             .expect("Failed to bind to 127.0.0.1:3000");
 
-        println!("🌐 MCP Server listening on http://localhost:3000");
+        println!("MCP Server listening on http://localhost:3000");
 
         axum::serve(listener, router)
             .await
@@ -316,7 +316,7 @@ async fn main() -> Result<()> {
     // Give server time to start
     tokio::time::sleep(tokio::time::Duration::from_millis(500)).await;
 
-    println!("✅ Agent starting with 8 tools available...\n");
+    println!("Agent starting with 8 tools available...\n");
 
     // Create a client that communicates with the local server via JSON-RPC HTTP
     let client = McpClient::new("http://localhost:3000/");
@@ -333,25 +333,25 @@ async fn main() -> Result<()> {
         "Can you count how many times the letter 'o' appears in 'hello world'?",
     ];
 
-    println!("\n🚀 Running demo queries with Claude agent:\n");
+    println!("\nRunning demo queries with Claude agent:\n");
     println!("The agent will use tools to answer questions about math, weather, text operations, and HTTP status codes.");
-    println!("\n📌 While the agent runs, you can also:");
-    println!("   • Visit http://localhost:8123 to use the Inspector");
-    println!("   • Manually test tools in the web UI");
-    println!("   • See request/response history");
+    println!("\nWhile the agent runs, you can also:");
+    println!("   - Visit http://localhost:8123 to use the Inspector");
+    println!("   - Manually test tools in the web UI");
+    println!("   - See request/response history");
     println!("\n{}", "=".repeat(80));
 
     for (i, query) in demo_queries.iter().enumerate() {
-        println!("\n📝 Query {}: {}", i + 1, query);
+        println!("\nQuery {}: {}", i + 1, query);
         println!("{}", "-".repeat(80));
 
         match agent.run(*query).await {
             Ok(response) => {
-                println!("🤖 Agent Response:");
+                println!("Agent Response:");
                 println!("{}", response);
             }
             Err(e) => {
-                eprintln!("❌ Error: {}", e);
+                eprintln!("Error: {}", e);
             }
         }
 
@@ -359,7 +359,7 @@ async fn main() -> Result<()> {
     }
 
     println!("{}", "=".repeat(80));
-    println!("\n✅ Demo completed!");
+    println!("\nDemo completed!");
     println!("\nWhat you just saw:");
     println!("1. The agent read your question");
     println!("2. The agent decided which tools to use");
@@ -368,7 +368,7 @@ async fn main() -> Result<()> {
     println!("5. The agent synthesized the results into a helpful answer\n");
     println!("This is the power of the MCP Framework - LLMs can dynamically call tools!");
 
-    println!("\n✨ Done! The MCP Server (localhost:3000) is still running.");
+    println!("\nDone! The MCP Server (localhost:3000) is still running.");
     println!("Press Ctrl+C to stop.\n");
 
     // Keep the application running so server stays alive

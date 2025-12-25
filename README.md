@@ -3,14 +3,14 @@
 <!-- Banner Image - Add your banner.png to docs/ directory -->
 <img src="assets/banner.png" alt="MCP Framework Banner" width="800" style="margin-bottom: 20px;">
 
-# 🚀 MCP Framework - Rust Implementation
+# MCP Framework - Rust Implementation
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/MCP%20Framework-Rust-orange?style=for-the-badge&logo=rust&logoColor=white">
   <img alt="MCP Framework" src="https://img.shields.io/badge/MCP%20Framework-Rust-orange?style=for-the-badge&logo=rust&logoColor=white">
 </picture>
 
-**Production-Ready Rust Implementation** of the [Model Context Protocol](https://modelcontextprotocol.io) with blazing-fast performance, comprehensive tools, and a web-based inspector.
+Rust MCP framework for building AI agents. Connect agents to any MCP server (Playwright, filesystem, databases) with support for Claude and OpenAI. Multi-server support, HTTP and stdio transports.
 
 ---
 
@@ -30,40 +30,34 @@
 
 ---
 
-## 🌐 What is mcp-framework?
+## What is mcp-framework?
 
-**mcp-framework** is a complete, production-ready Rust implementation of the Model Context Protocol, enabling you to:
+A Rust framework for building AI agents that can use any MCP server. Includes:
 
-- 🤖 **Build AI Agents** - Create intelligent agents with LLM integration (Claude, OpenAI) and multi-step reasoning
-- 🛠️ **Create MCP Servers** - Register tools, resources, and prompts easily
-- 📡 **Connect to MCP Servers** - HTTP client for programmatic tool access
-- 🔍 **Debug with Inspector** - Beautiful web-based dashboard for testing tools
-- ⚡ **High Performance** - Blazing-fast Rust implementation
-- 🛡️ **Type-Safe** - Leverage Rust's type system for safety and reliability
+- Agent framework with LLM integration (Claude, OpenAI)
+- MCP client with multi-transport support (HTTP, stdio)
+- MCP server implementation
+- Web-based inspector for testing
 
 ---
 
-## ✨ Key Features
+## Features
 
-### 🎯 Core Components
+| Feature | Status |
+|---------|--------|
+| MCP Server | Done |
+| MCP Client | Done |
+| AI Agent | Done |
+| Web Inspector | Done |
+| Claude Integration | Done |
+| OpenAI Integration | Done |
+| Browser Automation | Done |
+| Session Management | Done |
+| Resources | Planned |
+| Prompts | Planned |
+| Authentication | Planned |
 
-| Feature | Status | Details |
-|---------|--------|---------|
-| **MCP Server** | ✅ Complete | Register tools, handle execution, JSON-RPC protocol |
-| **MCP Client** | ✅ Complete | Multi-transport client (HTTP, HTTPS, stdio) with session management |
-| **AI Agent** | ✅ Complete | Agentic loop with pluggable LLM providers |
-| **Web Inspector** | ✅ Complete | Interactive UI at `http://localhost:8123` |
-| **Claude Integration** | ✅ Complete | AnthropicAdapter for Claude models with tool use |
-| **OpenAI Integration** | ✅ Complete | OpenAIAdapter with Responses API and internal tool loop |
-| **Browser Automation** | ✅ Complete | Playwright MCP integration for web automation |
-| **Protocol Types** | ✅ Complete | Tools and Messages (Core MCP protocol) |
-| **Session Management** | ✅ Complete | Multi-server sessions with connectors |
-| **Resources** | ⏳ Planned | For serving files and data to clients |
-| **Prompts** | ⏳ Planned | Callable prompt templates with dynamic generation |
-| **Authentication** | ⏳ Planned | Bearer tokens, OAuth 2.0 support |
-| **.env Support** | ✅ Complete | Load API keys from environment files |
-
-### 🛠️ 8 Built-in Example Tools
+### Example Tools
 
 ```
 • echo           - String echo utility
@@ -78,7 +72,7 @@
 
 ---
 
-## 📦 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -139,13 +133,9 @@ cargo run --example browser_agent_anthropic
 
 ---
 
-## 🎯 What Do You Want to Build?
+## Usage
 
-### 🤖 Build an AI Agent
-
-Create intelligent agents that can use MCP tools to accomplish complex tasks.
-
-**Quick Example:**
+### Build an AI Agent
 ```rust
 use mcp_framework::prelude::*;
 use std::sync::Arc;
@@ -171,11 +161,7 @@ async fn main() -> Result<()> {
 
 ---
 
-### 🛠️ Create an MCP Server
-
-Build your own MCP servers with custom tools.
-
-**Quick Example:**
+### Create an MCP Server
 ```rust
 use mcp_framework::prelude::*;
 use mcp_framework::server::{McpServer, ServerConfig, ToolHandler};
@@ -222,15 +208,11 @@ async fn main() -> Result<()> {
 
 **Examples:**
 - `cargo run` - Minimal server (1 tool)
-- `cargo run --example server_with_tools` - Comprehensive example (8 tools + Inspector)
+- `cargo run --example server_with_tools` - Full example (8 tools + Inspector)
 
 ---
 
-### 📡 Use MCP Client
-
-Connect to MCP servers and call tools programmatically.
-
-**Quick Example:**
+### Use MCP Client
 ```rust
 use mcp_framework::prelude::*;
 use serde_json::json;
@@ -258,60 +240,24 @@ async fn main() -> Result<()> {
 
 ---
 
-### 🔍 Debug with Inspector
+### Debug with Inspector
 
-Test and debug MCP servers interactively with a web-based UI.
+Test and debug MCP servers with a web UI.
 
 ```bash
 cargo run --example server_with_tools
 # Open browser to: http://localhost:8123
 ```
 
-The Inspector provides:
-- 📋 View all registered tools with descriptions
-- 🧪 Test tools interactively with auto-generated forms
-- 📊 See full request/response history
-- 🔍 Inspect tool outputs and errors in real-time
+Features:
+- View registered tools
+- Test tools with auto-generated forms
+- Request/response history
+- Real-time output inspection
 
 ---
 
-## 📁 Project Structure
-
-```
-mcp-framework/
-├── src/
-│   ├── lib.rs                ← Main library entry point (prelude + exports)
-│   ├── protocol.rs           ← MCP type definitions (Tools, Messages, Protocol)
-│   ├── server.rs             ← McpServer implementation & tool registration
-│   ├── client.rs             ← McpClient implementation (HTTP-based)
-│   ├── agent.rs              ← AI Agent with agentic loop & LLM integration
-│   ├── inspector.rs          ← Web-based debugging UI (localhost:8123)
-│   ├── error.rs              ← Error types and JSON-RPC codes
-│   └── adapters/
-│       ├── mod.rs
-│       ├── anthropic.rs      ← Claude (Anthropic) LLM adapter
-│       └── openai.rs         ← OpenAI GPT LLM adapter
-├── examples/
-│   ├── server_with_tools.rs               ← 8-tool server with Inspector
-│   ├── anthropic_agent_demo_with_tools.rs ← Claude agent example
-│   ├── openai_agent_demo_with_tools.rs    ← OpenAI agent example
-│   ├── browser_agent_openai.rs            ← Browser automation with OpenAI
-│   ├── browser_agent_anthropic.rs         ← Browser automation with Claude
-│   ├── client_usage.rs                    ← Client usage example
-│   └── simple_server.rs                   ← Minimal server example
-├── assets/
-│   └── banner.png           
-├── Cargo.toml
-├── Cargo.lock
-├── LICENSE                   ← MIT License
-├── .env.example              ← Environment variables template
-├── .gitignore
-└── README.md
-```
-
----
-
-## 🚀 Core API Reference
+## API Reference
 
 ### Create a Server
 
@@ -416,7 +362,7 @@ let result = client.call_tool("echo", json!({
 
 ---
 
-## 🧪 Testing
+## Testing
 
 ```bash
 # Run all tests
@@ -434,19 +380,19 @@ cargo test --release
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
 ---
 
-## 📄 License
+## License
 
 MIT License - see LICENSE file for details
 
 ---
 
-## 🔗 Resources
+## Resources
 
 - **[Model Context Protocol](https://modelcontextprotocol.io)** - Official MCP website
 - **[MCP Specification](https://spec.modelcontextprotocol.io/)** - Official protocol specification

@@ -107,7 +107,7 @@ async fn handle_rpc(
 
 #[tokio::main]
 async fn main() -> mcp_framework::Result<()> {
-    println!("🚀 MCP Framework - 8 Tools Example with Inspector\n");
+    println!("MCP Framework - 8 Tools Example with Inspector\n");
 
     let config = ServerConfig {
         name: "Tools Server".to_string(),
@@ -202,9 +202,9 @@ async fn main() -> mcp_framework::Result<()> {
         server.register_tool(tool.clone());
     }
 
-    println!("📋 Registered {} tools:", tools_to_register.len());
+    println!("Registered {} tools:", tools_to_register.len());
     for tool in &tools_to_register {
-        println!("  • {}", tool.name);
+        println!("  - {}", tool.name);
     }
 
     // Setup inspector
@@ -226,7 +226,7 @@ async fn main() -> mcp_framework::Result<()> {
             .await
             .expect("Failed to bind MCP server to 127.0.0.1:3000");
 
-        println!("🌐 JSON-RPC Server listening on http://localhost:3000");
+        println!("JSON-RPC Server listening on http://localhost:3000");
 
         axum::serve(listener, router)
             .await
@@ -235,9 +235,9 @@ async fn main() -> mcp_framework::Result<()> {
 
     // Start Inspector on port 8123 (in background task)
     let inspector_task = tokio::spawn(async move {
-        println!("🌐 Inspector listening on http://localhost:8123");
-        println!("   Visit the URL to test tools interactively");
-        println!("   Press Ctrl+C to stop\n");
+        println!("Inspector listening on http://localhost:8123");
+        println!("Visit the URL to test tools interactively");
+        println!("Press Ctrl+C to stop\n");
 
         if let Err(e) = inspector.start("127.0.0.1:8123").await {
             eprintln!("Inspector error: {}", e);

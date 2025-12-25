@@ -1,31 +1,7 @@
-/// OpenAI LLM Adapter using Responses API with Tool Execution Loop
+/// OpenAI adapter using Responses API.
 ///
-/// This adapter integrates with OpenAI's Responses API and implements a tool execution loop
-/// to handle function calls. When OpenAI requests tool execution, this adapter:
-/// 1. Detects function_call outputs from OpenAI
-/// 2. Executes the tools locally using the provided tool set
-/// 3. Sends results back to OpenAI for synthesis
-/// 4. Returns the final synthesized response
-///
-/// # How it Works
-/// 1. User provides a prompt
-/// 2. Adapter sends text input + tools to Responses API
-/// 3. OpenAI may respond with function_call outputs
-/// 4. Adapter executes tools and sends results back
-/// 5. OpenAI synthesizes final response
-/// 6. Final response is returned
-///
-/// # Example
-///
-/// ```ignore
-/// use mcp_framework::adapters::OpenAIAdapter;
-/// use mcp_framework::agent::Agent;
-///
-/// let adapter = OpenAIAdapter::from_env("gpt-5".to_string())?;
-///
-/// let agent = Agent::new(client, std::sync::Arc::new(adapter), config);
-/// let result = agent.run("What is 15 + 27?").await?;
-/// ```
+/// Implements internal tool execution loop - detects function calls,
+/// executes them via MCP client, and sends results back to OpenAI.
 
 use crate::agent::LLMProvider;
 use crate::protocol::{Message, Tool, ContentBlock};
