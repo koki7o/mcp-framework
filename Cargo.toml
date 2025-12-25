@@ -1,13 +1,12 @@
 [package]
 name = "mcp_framework"
 version = "0.1.0"
-edition = "2024"
-description = "A production-ready Rust implementation of the Model Context Protocol (MCP) with AI agent support, tool servers, and web-based debugging."
+edition = "2025"
+description = "Rust MCP framework for building AI agents."
 authors = ["MCP Framework Contributors"]
 license = "MIT"
 repository = "https://github.com/koki7o/mcp-framework"
-homepage = "https://modelcontextprotocol.io"
-documentation = "https://docs.rs/mcp_framework"
+homepage = "https://github.com/koki7o/mcp-framework"
 keywords = ["mcp", "ai", "agents", "llm", "tools"]
 categories = ["api-bindings", "development-tools"]
 
