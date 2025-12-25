@@ -392,16 +392,6 @@ MIT License - see LICENSE file for details
 
 ---
 
-## Resources
-
-- **[Model Context Protocol](https://modelcontextprotocol.io)** - Official MCP website
-- **[MCP Specification](https://spec.modelcontextprotocol.io/)** - Official protocol specification
-- **[Rust Book](https://doc.rust-lang.org/book/)** - Learn Rust
-- **[Tokio Docs](https://tokio.rs/)** - Async runtime documentation
-- **[Serde Documentation](https://serde.rs/)** - Serialization framework
-
----
-
 <div align="center">
 
 **Made with ❤️ for the MCP community**
