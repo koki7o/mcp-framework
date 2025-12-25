@@ -1,31 +1,6 @@
-//! Example: MCP Agent with Tools Demo
+//! Agent demo with local MCP server.
 //!
-//! This example demonstrates how an LLM agent uses the 8 tools
-//! to intelligently answer questions and perform tasks.
-//!
-//! The agent will:
-//! 1. Start an MCP server (localhost:3000) with 8 tools
-//! 2. Initialize Claude as the LLM
-//! 3. Receive user queries
-//! 4. See available tools (calculator, weather, json_parser, etc.)
-//! 5. Decide which tools to call
-//! 6. Call them with appropriate parameters
-//! 7. Synthesize results into a helpful answer
-//!
-//! Everything runs in a single process - no need for separate terminals!
-//!
-//! Requires ANTHROPIC_API_KEY environment variable to be set in .env or environment.
-//!
-//! Run with:
-//! ```bash
-//! cargo run --example agent_with_tools_demo --release
-//! ```
-//!
-//! The example will:
-//! - Start MCP server on http://localhost:3000
-//! - Initialize Claude
-//! - Run 5 demo queries
-//! - Show Claude calling tools and synthesizing complete answers
+//! cargo run --example anthropic_agent_demo_with_tools --release
 
 use mcp_framework::prelude::*;
 use mcp_framework::server::{McpServer, ServerConfig, ToolHandler};

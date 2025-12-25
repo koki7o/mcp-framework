@@ -1,9 +1,12 @@
+//! Simple MCP server with calculator.
+//!
+//! cargo run --example simple_server
+
 use mcp_framework::prelude::*;
 use mcp_framework::server::{McpServer, ServerConfig, ToolHandler};
 use std::sync::Arc;
 use serde_json::{json, Value};
 
-/// Simple calculator tool handler
 struct CalculatorHandler;
 
 #[async_trait::async_trait]

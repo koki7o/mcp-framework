@@ -1,7 +1,10 @@
+//! Direct MCP client usage.
+//!
+//! cargo run --example client_usage
+
 use mcp_framework::client::McpClient;
 use serde_json::json;
 
-/// Example of how to use the MCP Client to connect to a server
 #[tokio::main]
 async fn main() -> mcp_framework::Result<()> {
     println!("MCP Client Usage Example\n");

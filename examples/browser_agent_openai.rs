@@ -1,17 +1,6 @@
-//! Browser Automation with OpenAI
+//! Browser automation with Playwright MCP.
 //!
-//! This example demonstrates browser automation using Playwright MCP with OpenAI.
-//! The agent navigates websites and performs tasks autonomously.
-//!
-//! Run with:
-//! ```bash
 //! cargo run --example browser_agent_openai
-//! ```
-//!
-//! Prerequisites:
-//! - Install Playwright MCP: `npm install -g @playwright/mcp@latest`
-//! - Install Firefox browser: `npx playwright install firefox`
-//! - Set OPENAI_API_KEY in .env file
 
 use mcp_framework::prelude::*;
 

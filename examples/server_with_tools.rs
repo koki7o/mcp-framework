@@ -1,3 +1,7 @@
+//! MCP server with 8 tools and inspector.
+//!
+//! cargo run --example server_with_tools
+
 use mcp_framework::prelude::*;
 use mcp_framework::server::{McpServer, ServerConfig, ToolHandler};
 use mcp_framework::inspector::Inspector;
@@ -11,11 +15,10 @@ use axum::{
 };
 use tokio::net::TcpListener;
 
-/// Comprehensive tool handler with 8 different tools
-struct ComprehensiveToolHandler;
+struct ToolsHandler;
 
 #[async_trait::async_trait]
-impl ToolHandler for ComprehensiveToolHandler {
+impl ToolHandler for ToolsHandler {
     async fn execute(&self, name: &str, arguments: Value) -> mcp_framework::Result<Vec<ResultContent>> {
         match name {
             "echo" => {
@@ -119,7 +122,7 @@ async fn main() -> mcp_framework::Result<()> {
         },
     };
 
-    let tool_handler = Arc::new(ComprehensiveToolHandler);
+    let tool_handler = Arc::new(ToolsHandler);
     let server = Arc::new(McpServer::new(config, tool_handler));
 
     // Register all 8 tools

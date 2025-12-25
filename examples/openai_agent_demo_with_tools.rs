@@ -1,31 +1,6 @@
-//! Example: MCP Agent with OpenAI GPT-5 Demo
+//! Agent demo with local MCP server.
 //!
-//! This example demonstrates how an LLM agent uses the 8 tools
-//! to intelligently answer questions and perform tasks using OpenAI's GPT-5.
-//!
-//! The agent will:
-//! 1. Register 8 tools (calculator, weather, json_parser, etc.)
-//! 2. Initialize GPT-5 as the LLM
-//! 3. Receive user queries
-//! 4. Send tools directly to OpenAI for discovery
-//! 5. Let GPT-5 decide which tools to call
-//! 6. Execute tools and return results to GPT-5
-//! 7. Synthesize results into a helpful answer
-//!
-//! Everything runs in a single process - local and remote!
-//!
-//! Requires OPENAI_API_KEY environment variable to be set in .env or environment.
-//!
-//! Run with:
-//! ```bash
 //! cargo run --example openai_agent_demo_with_tools --release
-//! ```
-//!
-//! The example will:
-//! - Initialize GPT-5 with Responses API
-//! - Run 5 demo queries
-//! - Show GPT-5 calling tools and synthesizing complete answers
-//! - All tool calls are executed locally in the agent loop
 
 use mcp_framework::prelude::*;
 use mcp_framework::server::{McpServer, ServerConfig, ToolHandler};
