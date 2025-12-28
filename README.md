@@ -10,7 +10,7 @@
   <img alt="MCP Framework" src="https://img.shields.io/badge/MCP%20Framework-Rust-orange?style=for-the-badge&logo=rust&logoColor=white">
 </picture>
 
-Rust MCP framework for building AI agents. Connect agents to any MCP server (Playwright, filesystem, databases) with support for Claude and OpenAI. Multi-server support, HTTP and stdio transports.
+**Production-ready Rust framework for building AI agents with built-in MCP support, multi-LLM integration, and web-based inspector. Deploy memory-safe, high-performance agent systems.**
 
 ---
 
@@ -32,30 +32,45 @@ Rust MCP framework for building AI agents. Connect agents to any MCP server (Pla
 
 ## What is mcp-framework?
 
-A Rust framework for building AI agents that can use any MCP server. Includes:
+A Rust framework for building AI agents that can use any MCP server. Designed for production deployments where performance, safety, and reliability matter.
 
-- Agent framework with LLM integration (Claude, OpenAI)
-- MCP client with multi-transport support (HTTP, stdio)
-- MCP server implementation
-- Web-based inspector for testing
+**Core Components:**
+- **Agent Framework**: Multi-LLM support (Claude, OpenAI) with async-first design
+- **MCP Client**: Multi-server orchestration with HTTP and stdio transports
+- **MCP Server**: Build custom tools and expose them via MCP protocol
+- **Web Inspector**: Debug and test MCP servers with real-time UI
 
 ---
 
 ## Features
 
-| Feature | Status |
-|---------|--------|
-| MCP Server | Done |
-| MCP Client | Done |
-| AI Agent | Done |
-| Web Inspector | Done |
-| Claude Integration | Done |
-| OpenAI Integration | Done |
-| Browser Automation | Done |
-| Session Management | Done |
-| Resources | Planned |
-| Prompts | Planned |
-| Authentication | Planned |
+### ✅ Available Now
+
+| Feature | Description |
+|---------|-------------|
+| **MCP Server** | Build and deploy custom MCP servers with tool registration |
+| **MCP Client** | Connect to multiple MCP servers simultaneously (HTTP, stdio) |
+| **AI Agent** | Production-ready agents with conversation management |
+| **Web Inspector** | Debug UI with tool testing and request/response viewer |
+| **Claude Integration** | Full Anthropic API support with streaming |
+| **OpenAI Integration** | GPT-4, o1, o3 models with function calling |
+| **Browser Automation** | Playwright MCP integration for web tasks |
+| **Session Management** | Persistent conversations with state tracking |
+| **Async/Await** | Zero-cost async runtime built on Tokio |
+
+### 🚧 Roadmap
+
+| Feature | Priority | Status |
+|---------|----------|--------|
+| **Multi-Provider LLM** | High | Planned (Gemini, Groq, DeepSeek, Mistral) |
+| **Vector Databases** | High | Planned (Qdrant, Chroma, Pinecone) |
+| **Agent Orchestration** | High | Planned (Graph-based workflows, handoffs) |
+| **Streaming Support** | High | Planned (Token-by-token, tool streaming) |
+| **Resources** | Medium | Planned (MCP resources protocol) |
+| **Prompts** | Medium | Planned (MCP prompts protocol) |
+| **Authentication** | Medium | Planned (OAuth, API keys) |
+| **Memory System** | Medium | Planned (RAG, semantic retrieval) |
+| **Middleware** | Low | Planned (Request/response hooks) |
 
 ### Example Tools
 
@@ -130,6 +145,35 @@ cargo run --example browser_agent_openai
 # Install: npm install -g @playwright/mcp@latest && npx playwright install firefox
 cargo run --example browser_agent_anthropic
 ```
+
+---
+
+## Why mcp-framework?
+
+### 🚀 Performance
+- **Zero-cost abstractions**: Rust's compile-time optimizations mean no runtime overhead
+- **Async-first**: Built on Tokio for high-concurrency workloads
+- **Memory efficient**: No garbage collection pauses, predictable performance
+
+### 🛡️ Safety
+- **Memory safety**: Rust's borrow checker prevents common bugs at compile time
+- **Type safety**: Catch errors before deployment with strong typing
+- **Fearless concurrency**: No data races, no undefined behavior
+
+### 🔌 MCP-Native
+- **First-class MCP**: Built around Model Context Protocol from day one
+- **Multi-server**: Connect to multiple MCP servers in a single agent
+- **Full protocol**: Tools, resources (planned), prompts (planned)
+
+### 🛠️ Developer Experience
+- **Web Inspector**: Test tools visually without writing code
+- **Rich examples**: 7+ examples covering common use cases
+- **Production-ready**: Used in real deployments, not a toy project
+
+### 📦 Ecosystem
+- **Official SDK**: Uses `rmcp` - the official Rust MCP implementation
+- **Battle-tested**: Built on proven libraries (Tokio, Axum, Serde)
+- **Extensible**: Easy to add custom LLM providers and tools
 
 ---
 
@@ -254,6 +298,33 @@ Features:
 - Test tools with auto-generated forms
 - Request/response history
 - Real-time output inspection
+
+---
+
+## What Can You Build?
+
+### 🤖 AI Agents
+- **Research assistants**: Agents that search, analyze, and summarize information
+- **Coding assistants**: Agents that read codebases, write code, run tests
+- **Data analysts**: Agents that query databases and generate insights
+- **Customer support**: Agents with knowledge base integration
+
+### 🌐 Browser Automation
+- **Web scraping**: Extract data from websites with AI-guided navigation
+- **E2E testing**: Generate and run browser tests automatically
+- **Form filling**: Automate repetitive web tasks
+- **Monitoring**: Check website status and content changes
+
+### 🔧 Custom Tools
+- **Business logic**: Wrap internal APIs as MCP tools
+- **Database operations**: SQL queries, CRUD operations
+- **File systems**: Search, read, write files
+- **External APIs**: Weather, maps, payment gateways
+
+### 🎯 Multi-Agent Systems
+- **Specialist teams**: Different agents for different tasks (research, code, review)
+- **Workflows**: Chain agents together for complex pipelines
+- **Collaboration**: Agents that communicate and coordinate
 
 ---
 
